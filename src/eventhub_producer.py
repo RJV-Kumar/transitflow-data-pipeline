@@ -1,9 +1,18 @@
 from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
-from connection import send_to_event_hub, generate_ride_confirmation
+from eventhub_connection import send_to_event_hub, generate_ride_confirmation
+from pathlib import Path
 
 app = FastAPI()
-templates = Jinja2Templates(directory="templates")
+
+# Resolve project root (one level above src/)
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+# Path to templates folder
+TEMPLATE_DIR = PROJECT_ROOT / "templates"
+
+templates = Jinja2Templates(directory=str(TEMPLATE_DIR))
+
 
 @app.get("/")
 def booking_home(request: Request):
@@ -11,7 +20,7 @@ def booking_home(request: Request):
 
 
 @app.get("/book")
-def book_ride(request: Request):  
+def book_ride(request: Request):
     ride = generate_ride_confirmation()
     result = send_to_event_hub(ride)
     return templates.TemplateResponse("confirmation.html", {"request": request})
